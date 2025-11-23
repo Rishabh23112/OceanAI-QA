@@ -1,0 +1,27 @@
+{
+    "POST /apply_coupon": {
+        "description": "Applies a discount coupon to the cart.",
+        "parameters": {
+            "code": "string (required) - The coupon code to apply."
+        },
+        "responses": {
+            "200": "Coupon applied successfully.",
+            "400": "Invalid coupon code."
+        }
+    },
+    "POST /submit_order": {
+        "description": "Submits the order for processing.",
+        "parameters": {
+            "name": "string (required) - Customer's full name.",
+            "email": "string (required) - Customer's email address.",
+            "address": "string (required) - Shipping address.",
+            "card_number": "string (required) - Credit card number.",
+            "shipping_method": "string (required) - 'standard' or 'express'.",
+            "payment_method": "string (required) - 'credit_card' or 'paypal'."
+        },
+        "responses": {
+            "200": "Order placed successfully.",
+            "400": "Validation error (e.g., invalid email, missing fields)."
+        }
+    }
+}

@@ -1,0 +1,12 @@
+# UI/UX Guidelines
+
+## Color Palette
+- Primary Button: Blue (#007bff)
+- Hover State: Darker Blue (#0056b3)
+- Error Messages: Red
+- Success Messages: Green
+
+## Interaction Patterns
+- Error messages should appear immediately below the invalid field.
+- Success message should replace the form upon successful submission.
+- Promo code validation happens on button click, not form submit.

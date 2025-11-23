@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+google-genai
+qdrant-client
+selenium
+webdriver-manager
+beautifulsoup4
+requests
+python-dotenv
+python-multipart
+streamlit
+pymupdf
