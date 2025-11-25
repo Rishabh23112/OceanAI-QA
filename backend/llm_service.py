@@ -134,6 +134,14 @@ def generate_selenium_script(test_case: TestCase, html_content: str, api_key: st
         - In the except block, print a FAILURE message: "❌ TEST FAILED: [test name]" with error details and "=" borders, then call sys.exit(1)
         - In the finally block, print "✓ Closing browser..." before driver.quit() and "✓ Test execution complete." after
         - Make ALL output clear, informative, and easy to read
+        - AFTER the test execution (at the end of try block, after SUCCESS message), ALWAYS print the structured test case summary with these fields on separate lines:
+          * Test_ID: {test_case.id}
+          * Feature: [extracted from test case description]
+          * Test_Scenario: [extracted from test steps or description]
+          * Expected_Result: {test_case.expected_result}
+          * Grounded_In: {test_case.grounded_in}
+        - Print a blank line before the summary for clarity
+        - This summary should appear in BOTH success and failure scenarios
     
     Example template structure:
     ```python
@@ -158,12 +166,29 @@ def generate_selenium_script(test_case: TestCase, html_content: str, api_key: st
         print("✅ TEST PASSED: [Success message]")
         print("=" * 70)
         
+        # Print structured test case summary
+        print()
+        print("Test_ID: [TC-ID]")
+        print("Feature: [Feature Name]")
+        print("Test_Scenario: [Scenario Description]")
+        print("Expected_Result: [Expected Result]")
+        print("Grounded_In: [Document Name]")
+        
     except Exception as e:
         print("\\n" + "=" * 70)
         print("❌ TEST FAILED: [Test name]")
         print("=" * 70)
         print(f"Error: {{str(e)}}")
         print("=" * 70)
+        
+        # Print structured test case summary on failure too
+        print()
+        print("Test_ID: [TC-ID]")
+        print("Feature: [Feature Name]")
+        print("Test_Scenario: [Scenario Description]")
+        print("Expected_Result: [Expected Result]")
+        print("Grounded_In: [Document Name]")
+        
         sys.exit(1)
         
     finally:
