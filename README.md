@@ -32,28 +32,40 @@ An intelligent, autonomous QA agent capable of constructing a "testing brain" fr
 
 ## Usage
 
-### 1. Start the Backend
-```bash
-uvicorn backend.main:app --reload
-```
-The API will be available at `http://localhost:8000`.
+### 1. Run Locally (Two Terminals)
+Start services individually if you prefer separate processes during development:
 
-### 2. Start the Frontend
 ```bash
+# Terminal 1
+uvicorn backend.main:app --reload
+
+# Terminal 2
 streamlit run frontend/app.py
 ```
-The UI will open in your browser at `http://localhost:8501`.
 
-### 3. Docker Deployment (Recommended)
-You can run the entire application (Frontend + Backend) using Docker Compose.
+### 2. Docker (Single Container)
 
-1.  **Build and Run**:
-    ```bash
-    docker-compose up --build
-    ```
-2.  **Access**:
-    - Frontend: `http://localhost:8501`
-    - Backend API Docs: `http://localhost:8000/docs`
+A single container now runs both FastAPI and Streamlit.
+
+```bash
+docker-compose up --build
+```
+
+- Streamlit UI: `http://localhost:8501`
+- FastAPI docs (reachable from the container and via forwarded port if needed): `http://localhost:8000/docs`
+
+> The container uses `start.sh` to launch FastAPI on port `8000` and Streamlit on the externally exposed port (`8501` by default). Streamlit talks to the API via `http://127.0.0.1:8000`.
+
+### 3. Deploy on Render Using Docker
+
+1. Push the repository to GitHub (already done if following prior instructions).
+2. In Render, create a **Web Service** and choose **Docker** as the deployment method.
+3. Point Render to this repository. The root `Dockerfile` installs dependencies, copies the code, and runs `start.sh`.
+4. Set the following environment variables in Render (if needed):
+   - `PORT`: Render sets this automatically; no change required.
+   - `BACKEND_PORT`: default `8000`.
+   - Any API keys (`GEMINI_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`) if you prefer not to enter them via the Streamlit UI.
+5. Deploy. Render exposes the Streamlit UI at the service URL, and the UI communicates with the FastAPI process running inside the same container.
 
 ### 4. Workflow
 1.  **Configure API Keys**: When you open the Streamlit UI, enter your **Gemini API Key**, **Qdrant URL** , and **Qdrant API Key** in the sidebar. These are required for the application to function.
@@ -65,6 +77,7 @@ You can run the entire application (Frontend + Backend) using Docker Compose.
 ## Project Structure
 - `backend/`: FastAPI application, LLM service, and Database logic.
 - `frontend/`: Streamlit user interface.
+- `start.sh`: Launch script that runs both FastAPI and Streamlit inside one container.
 - `assets/`: Sample project files (`checkout.html`, `product_specs.md`, etc.).
 
 ## Support Documents
