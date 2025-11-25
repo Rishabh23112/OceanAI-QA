@@ -9,7 +9,13 @@ st.title("🤖 Autonomous QA Agent")
 
 # Sidebar Configuration
 st.sidebar.header("Configuration")
-BACKEND_URL = st.sidebar.text_input("Backend URL", value="http://localhost:8000")
+default_backend_url = os.environ.get("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = st.sidebar.text_input("Backend URL", value=default_backend_url)
+
+st.sidebar.subheader("API Credentials")
+gemini_api_key = st.sidebar.text_input("Gemini API Key", type="password", help="Required for LLM features")
+qdrant_url = st.sidebar.text_input("Qdrant URL", help="Optional: Defaults to memory if empty")
+qdrant_api_key = st.sidebar.text_input("Qdrant API Key", type="password", help="Optional: Required if using Qdrant Cloud")
 
 # State Management
 if 'test_cases' not in st.session_state:
@@ -21,6 +27,17 @@ if 'html_content' not in st.session_state:
 
 # Tabs
 tab1, tab2, tab3 = st.tabs(["📂 Ingestion", "🧠 Planning", "📜 Scripting"])
+
+# Helper for headers
+def get_headers():
+    headers = {}
+    if gemini_api_key:
+        headers["x-gemini-api-key"] = gemini_api_key
+    if qdrant_url:
+        headers["x-qdrant-url"] = qdrant_url
+    if qdrant_api_key:
+        headers["x-qdrant-api-key"] = qdrant_api_key
+    return headers
 
 # --- Tab 1: Ingestion ---
 with tab1:
@@ -41,7 +58,11 @@ with tab1:
             
             try:
                 with st.spinner("Ingesting files and building knowledge base..."):
-                    response = requests.post(f"{BACKEND_URL}/ingest", files=files)
+                    response = requests.post(
+                        f"{BACKEND_URL}/ingest", 
+                        files=files,
+                        headers=get_headers()
+                    )
                     
                 if response.status_code == 200:
                     st.success(f"Success! {response.json().get('message')}")
@@ -64,7 +85,11 @@ with tab2:
             try:
                 with st.spinner("Analyzing documentation and generating test cases..."):
                     payload = {"query": query}
-                    response = requests.post(f"{BACKEND_URL}/generate-tests", json=payload)
+                    response = requests.post(
+                        f"{BACKEND_URL}/generate-tests", 
+                        json=payload,
+                        headers=get_headers()
+                    )
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -150,7 +175,11 @@ with tab3:
                             "test_case": selected_tc,
                             "html_content": html_content
                         }
-                        response = requests.post(f"{BACKEND_URL}/generate-script", json=payload)
+                        response = requests.post(
+                            f"{BACKEND_URL}/generate-script", 
+                            json=payload,
+                            headers=get_headers()
+                        )
                     
                     if response.status_code == 200:
                         script_code = response.json().get("script_code")

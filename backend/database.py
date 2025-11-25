@@ -1,22 +1,20 @@
 import os
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import uuid
-
-qdrant_url = os.environ.get("QDRANT_URL")
-qdrant_api_key = os.environ.get("QDRANT_API_KEY")
-
-if not qdrant_url:
-    print("Warning: QDRANT_URL not set. Using in-memory storage.")
-    client = QdrantClient(":memory:")
-else:
-    client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
 COLLECTION_NAME = "qa_agent_docs"
 
-def ensure_collection():
+def get_client(url: str, api_key: str):
+    if not url:
+        print("Warning: QDRANT_URL not provided. Using in-memory storage.")
+        return QdrantClient(":memory:")
+    return QdrantClient(url=url, api_key=api_key)
+
+def ensure_collection(url: str, api_key: str):
     """Ensures the collection exists."""
+    client = get_client(url, api_key)
     try:
         collections = client.get_collections().collections
         exists = any(c.name == COLLECTION_NAME for c in collections)
@@ -30,9 +28,10 @@ def ensure_collection():
         print(f"Error ensuring collection: {e}")
         pass
 
-def upsert_documents(documents: List[Dict[str, Any]], embeddings: List[List[float]]):
+def upsert_documents(documents: List[Dict[str, Any]], embeddings: List[List[float]], url: str, api_key: str):
     """Upserts documents with their embeddings."""
-    ensure_collection()
+    ensure_collection(url, api_key)
+    client = get_client(url, api_key)
     
     points = []
     for doc, emb in zip(documents, embeddings):
@@ -52,9 +51,10 @@ def upsert_documents(documents: List[Dict[str, Any]], embeddings: List[List[floa
         print(f"Error upserting documents: {e}")
         raise e
 
-def search_documents(query_vector: List[float], limit: int = 5) -> str:
+def search_documents(query_vector: List[float], url: str, api_key: str, limit: int = 5) -> str:
     """Searches for relevant documents and returns combined text."""
-    ensure_collection()
+    ensure_collection(url, api_key)
+    client = get_client(url, api_key)
     
     try:
         from qdrant_client.models import QueryRequest

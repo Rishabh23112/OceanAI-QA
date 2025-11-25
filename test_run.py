@@ -1,55 +1,77 @@
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-def run_test_tc001():
-    driver = None
-    try:
-        # 1. Initialize Edge driver
-        # Selenium 4 automatically handles driver setup for Edge
-        driver = webdriver.Edge()
-        driver.maximize_window() # Maximize window for better visibility
+try:
+    # Test Header
+    test_id = "APICOUPON_001"
+    test_description = "Verify successful application of a valid coupon code."
+    print("=" * 70)
+    print(f"🧪 TEST CASE: {test_id} - {test_description}")
+    print("=" * 70)
 
-        # 2. Define the local file URL as per requirements
-        file_url = "file:///C:/Users/irish/OneDrive/Desktop/qa_agent/assets/checkout.html"
-        driver.get(file_url)
+    # 1. Initializing Edge WebDriver
+    print("\n✓ Initializing Edge WebDriver...")
+    driver = webdriver.Edge()
+    wait = WebDriverWait(driver, 10) # Initialize WebDriverWait with a 10-second timeout
 
-        # 3. Initialize WebDriverWait with a timeout
-        wait = WebDriverWait(driver, 10) # Wait up to 10 seconds
+    # 2. Navigating to the local HTML file
+    html_file_path = "file:///C:/Users/irish/OneDrive/Desktop/qa_agent/assets/checkout.html"
+    print(f"✓ Navigating to HTML file: {html_file_path}")
+    driver.get(html_file_path)
 
-        print("Test Case TC001: Verifying the base price of Wireless Headphones is displayed correctly")
+    # Define the valid coupon code and the expected success message
+    # The HTML provides "Available codes: SAVE15, SAVE20, DISCOUNT10, VALID10"
+    valid_coupon_code = "SAVE15"
+    # The expected result specifies "Coupon applied successfully." message
+    expected_success_message = "Coupon applied successfully."
 
-        # Step 1: Navigate to the product page for Wireless Headphones (handled by driver.get above)
-        # Step 2: Observe the displayed price
-        
-        # Locate the price element using its ID
-        # Use EC.visibility_of_element_located to ensure the element is present and visible
-        price_element = wait.until(EC.visibility_of_element_located((By.ID, "price")))
-        actual_price_value = price_element.text
+    # 3. Locating and interacting with the promo code input field
+    print(f"✓ Locating 'Discount Code' input field (ID: promo-code)...")
+    promo_code_input = wait.until(EC.presence_of_element_located((By.ID, "promo-code")))
+    print(f"✓ Entering valid coupon code '{valid_coupon_code}'...")
+    promo_code_input.send_keys(valid_coupon_code)
 
-        # Expected Result: The price displayed is $100.00 USD
-        # The span element itself contains "100.00", the '$' is outside it in the <p> tag.
-        # We'll assert the value from the element and then confirm the full display.
-        expected_price_from_element = "100.00"
-        full_expected_display_string = "$100.00 USD"
+    # 4. Locating and clicking the 'Apply' button
+    print(f"✓ Locating 'Apply' button (ID: apply-promo)...")
+    apply_promo_button = wait.until(EC.element_to_be_clickable((By.ID, "apply-promo")))
+    print(f"✓ Clicking 'Apply' button...")
+    apply_promo_button.click()
 
-        # 6. Assertions to verify the Expected Result
-        assert actual_price_value == expected_price_from_element, \
-            f"Assertion Failed: Expected price value '{expected_price_from_element}' " \
-            f"from element but got '{actual_price_value}'."
+    # 5. Verifying the success message displayed on the page
+    # The success message is expected to appear in the div with ID 'promo-message'.
+    print(f"✓ Waiting for success message '{expected_success_message}' to appear in promo-message (ID: promo-message)...")
+    wait.until(EC.text_to_be_present_in_element((By.ID, "promo-message"), expected_success_message))
 
-        print(f"Test TC001 Passed: Wireless Headphones base price displayed correctly.")
-        print(f"Observed Price: ${actual_price_value}")
-        print(f"Expected Price: {full_expected_display_string}")
+    # Retrieve the actual message from the element
+    actual_message_element = driver.find_element(By.ID, "promo-message")
+    actual_message = actual_message_element.text.strip()
+    print(f"✓ Actual message displayed: '{actual_message}'")
 
-    # 7. Wrap everything in a try-except-finally block with proper error handling
-    except Exception as e:
-        print(f"Test TC001 Failed: An error occurred - {e}")
-    finally:
-        if driver:
-            driver.quit() # Close the browser
-        print("Test TC001 execution finished.")
+    # 6. Asserting the expected result
+    assert actual_message == expected_success_message, \
+        f"Assertion failed: Expected message '{expected_success_message}', but got '{actual_message}'."
+    print("✓ Assertion passed: Coupon application success message verified.")
 
-# This allows the function to be called when the script is run
-run_test_tc001()
+    # Test Passed Output
+    print("\n" + "=" * 70)
+    print(f"✅ TEST PASSED: Coupon '{valid_coupon_code}' was applied successfully.")
+    print("=" * 70)
+
+except Exception as e:
+    # Test Failed Output
+    print("\n" + "=" * 70)
+    print(f"❌ TEST FAILED: {test_id} - {test_description}")
+    print("=" * 70)
+    print(f"Error: {str(e)}")
+    print("=" * 70)
+    sys.exit(1) # Exit with a non-zero status code to indicate failure
+
+finally:
+    # Ensure the browser is closed even if the test fails
+    if 'driver' in locals() and driver: # Check if 'driver' variable exists and is not None
+        print("\n✓ Closing browser...")
+        driver.quit()
+        print("✓ Test execution complete.\n")

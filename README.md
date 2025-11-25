@@ -26,14 +26,9 @@ An intelligent, autonomous QA agent capable of constructing a "testing brain" fr
     ```bash
     pip install -r requirements.txt
     ```
-4.  Set up environment variables:
-    Create a `.env` file in the root directory:
-    ```env
-    GEMINI_API_KEY=your_gemini_api_key
-    # Optional for cloud storage
-    # QDRANT_URL=your_qdrant_url
-    # QDRANT_API_KEY=your_qdrant_api_key
-    ```
+
+> [!NOTE]
+> **No `.env` file required!** All API keys (Gemini API Key, Qdrant URL, and Qdrant API Key) are entered directly in the Streamlit frontend UI when you start the application.
 
 ## Usage
 
@@ -49,11 +44,23 @@ streamlit run frontend/app.py
 ```
 The UI will open in your browser at `http://localhost:8501`.
 
-### 3. Workflow
-1.  **Ingest**: Go to the "Ingestion" tab. Upload your support documents (e.g., `assets/product_specs.md`) and the target HTML (`assets/checkout.html`). Click "Ingest Files".
-2.  **Plan**: Go to the "Planning" tab. Describe what you want to test (e.g., "Test discount codes"). Click "Generate Test Cases".
-3.  **Script**: Go to the "Scripting" tab. Select a generated test case. Ensure the target HTML is loaded. Click "Generate Script".
-4.  **Run**: Copy the generated Python script and run it locally (can copy paste that code in test_run.py file and run it)to verify the test.
+### 3. Docker Deployment (Recommended)
+You can run the entire application (Frontend + Backend) using Docker Compose.
+
+1.  **Build and Run**:
+    ```bash
+    docker-compose up --build
+    ```
+2.  **Access**:
+    - Frontend: `http://localhost:8501`
+    - Backend API Docs: `http://localhost:8000/docs`
+
+### 4. Workflow
+1.  **Configure API Keys**: When you open the Streamlit UI, enter your **Gemini API Key**, **Qdrant URL** , and **Qdrant API Key** in the sidebar. These are required for the application to function.
+2.  **Ingest**: Go to the "Ingestion" tab. Upload your support documents (e.g., `assets/product_specs.md`) and the target HTML (`assets/checkout.html`). Click "Ingest Files".
+3.  **Plan**: Go to the "Planning" tab. Describe what you want to test (e.g., "Test discount codes"). Click "Generate Test Cases".
+4.  **Script**: Go to the "Scripting" tab. Select a generated test case. Ensure the target HTML is loaded. Click "Generate Script".
+5.  **Run**: Copy the generated Python script and run it locally (can copy paste that code in test_run.py file and run it)to verify the test.
 
 ## Project Structure
 - `backend/`: FastAPI application, LLM service, and Database logic.

@@ -2,20 +2,21 @@ import os
 from google import genai
 from google.genai import types
 import json
-from typing import List, Dict, Any
-from .models import TestCase
+from typing import List, Dict, Any, Optional
+from models import TestCase
 from functools import lru_cache
-from .utils import clean_html_for_llm
+from utils import clean_html_for_llm
 import re
 
-api_key = os.environ.get("GEMINI_API_KEY")
-if not api_key:
-    print("WARNING: GEMINI_API_KEY not set. LLM features will fail.")
-client = genai.Client(api_key=api_key)
+def get_client(api_key: str):
+    if not api_key:
+        raise ValueError("Gemini API Key is required")
+    return genai.Client(api_key=api_key)
 
-def get_embedding(text: str) -> List[float]:
+def get_embedding(text: str, api_key: str) -> List[float]:
     """Generates embedding for the given text."""
     try:
+        client = get_client(api_key)
         response = client.models.embed_content(
             model="text-embedding-004",
             contents=text
@@ -27,9 +28,9 @@ def get_embedding(text: str) -> List[float]:
         print(f"Error generating embedding: {e}")
         return []
 
-@lru_cache(maxsize=10)
-def generate_test_cases(context: str) -> List[Dict[str, Any]]:
+def generate_test_cases(context: str, api_key: str) -> List[Dict[str, Any]]:
     """Generates test cases based on the provided context."""
+    client = get_client(api_key)
     prompt = f"""
     You are an expert QA Engineer. Based on the following documentation and UI guides, generate a list of comprehensive test cases.
     
@@ -91,8 +92,9 @@ def generate_test_cases(context: str) -> List[Dict[str, Any]]:
         print(f"Error generating test cases: {e}")
         return []
 
-def generate_selenium_script(test_case: TestCase, html_content: str) -> str:
+def generate_selenium_script(test_case: TestCase, html_content: str, api_key: str) -> str:
     """Generates a Selenium script for a specific test case."""
+    client = get_client(api_key)
     cleaned_html = clean_html_for_llm(html_content)
     
     prompt = f"""
@@ -110,6 +112,7 @@ def generate_selenium_script(test_case: TestCase, html_content: str) -> str:
     Requirements:
     1. Use `selenium` version 4 with Microsoft Edge (pre-installed on Windows).
     2. Import these at the top (MINIMAL imports):
+       - import sys
        - from selenium import webdriver
        - from selenium.webdriver.common.by import By
        - from selenium.webdriver.support.ui import WebDriverWait
@@ -121,6 +124,54 @@ def generate_selenium_script(test_case: TestCase, html_content: str) -> str:
     6. Include assertions to verify the Expected Result.
     7. Wrap everything in a try-except-finally block with proper error handling.
     8. Return ONLY the Python code, no markdown formatting, no comments about webdriver-manager.
+    9. CRITICAL: For selectors, PREFER `data-*` attributes (e.g., `data-name`, `data-id`) over text content.
+    10. If matching by text is necessary, use `normalize-space()` in XPath or `contains()` to handle potential whitespace issues. DO NOT use strict text equality for buttons.
+    
+    11. CRITICAL - CONSOLE OUTPUT REQUIREMENTS:
+        - At the START of the try block, print a test header with the test case ID and description using "=" borders (70 chars wide)
+        - Print "✓" before EACH major action with a descriptive message (e.g., "✓ Initializing Edge WebDriver...", "✓ Navigating to...", "✓ Locating element...", "✓ Clicking button...")
+        - After successful test completion, print a SUCCESS message: "✅ TEST PASSED: [brief success description]" with "=" borders
+        - In the except block, print a FAILURE message: "❌ TEST FAILED: [test name]" with error details and "=" borders, then call sys.exit(1)
+        - In the finally block, print "✓ Closing browser..." before driver.quit() and "✓ Test execution complete." after
+        - Make ALL output clear, informative, and easy to read
+    
+    Example template structure:
+    ```python
+    import sys
+    from selenium import webdriver
+    # ... other imports
+    
+    try:
+        print("=" * 70)
+        print("🧪 TEST CASE: [Test ID] - [Description]")
+        print("=" * 70)
+        
+        print("\\n✓ Initializing Edge WebDriver...")
+        driver = webdriver.Edge()
+        
+        print("✓ Navigating to HTML file...")
+        driver.get("...")
+        
+        # ... more steps with print statements
+        
+        print("\\n" + "=" * 70)
+        print("✅ TEST PASSED: [Success message]")
+        print("=" * 70)
+        
+    except Exception as e:
+        print("\\n" + "=" * 70)
+        print("❌ TEST FAILED: [Test name]")
+        print("=" * 70)
+        print(f"Error: {{str(e)}}")
+        print("=" * 70)
+        sys.exit(1)
+        
+    finally:
+        if 'driver' in locals() and driver:
+            print("\\n✓ Closing browser...")
+            driver.quit()
+            print("✓ Test execution complete.\\n")
+    ```
     """
     
     try:

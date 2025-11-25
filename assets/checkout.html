@@ -342,6 +342,8 @@
                 <button type="button" class="apply-promo-btn" id="apply-promo">Apply</button>
             </div>
             <div id="promo-message" class="error"></div>
+            <small style="color: #666; display: block; margin-top: 5px;">Available codes: SAVE15, SAVE20,
+                DISCOUNT10, VALID10</small>
         </div>
 
         <button type="submit" id="pay-btn">Pay Now</button>
@@ -449,14 +451,28 @@
             if (code === 'SAVE15') {
                 discount = 0.15;
                 msg.style.color = 'green';
-                msg.textContent = '15% discount applied!';
+                msg.textContent = 'Coupon applied successfully.';
                 msg.style.display = 'block';
                 msg.classList.remove('error');
                 msg.classList.add('success');
             } else if (code === 'SAVE20') {
                 discount = 0.20;
                 msg.style.color = 'green';
-                msg.textContent = '20% discount applied!';
+                msg.textContent = 'Coupon applied successfully.';
+                msg.style.display = 'block';
+                msg.classList.remove('error');
+                msg.classList.add('success');
+            } else if (code === 'DISCOUNT10') {
+                discount = 0.10;
+                msg.style.color = 'green';
+                msg.textContent = 'Coupon applied successfully.';
+                msg.style.display = 'block';
+                msg.classList.remove('error');
+                msg.classList.add('success');
+            } else if (code === 'VALID10') {
+                discount = 0.10;
+                msg.style.color = 'green';
+                msg.textContent = 'Coupon applied successfully.';
                 msg.style.display = 'block';
                 msg.classList.remove('error');
                 msg.classList.add('success');
