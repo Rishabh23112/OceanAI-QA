@@ -4,94 +4,92 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-try:
-    # Test case details for structured output
-    TEST_ID = "TC001"
-    TEST_DESCRIPTION = "Verify successful application of a valid coupon code."
-    FEATURE = "Coupon Application"
-    TEST_SCENARIO = "Apply a valid coupon code via UI and verify success message."
-    # The Expected_Result is kept exactly as specified in the problem description,
-    # though the Selenium script verifies its UI manifestation.
-    EXPECTED_RESULT = "API returns 200 OK with 'Coupon applied successfully.'"
-    GROUNDED_IN = "api_endpoints.json"
+# --- Test Case Details ---
+TEST_ID = "TC_APPLY_COUPON_001"
+TEST_DESCRIPTION = "Verify successful application of a valid coupon code."
+TEST_FEATURE = "Coupon Application"
+TEST_SCENARIO = "User applies a valid coupon code 'SAVE15' through the UI."
+EXPECTED_RESULT = "The API should return a 200 OK status and the message 'Coupon applied successfully.'."
+GROUNDED_IN = "api_endpoints.json"
 
+# URL of the local HTML file
+HTML_FILE_PATH = "file:///C:/Users/irish/OneDrive/Desktop/qa_agent/assets/checkout.html"
+
+# Coupon code to use (from available codes in HTML: SAVE15, SAVE20, DISCOUNT10, VALID10)
+VALID_COUPON_CODE = "SAVE15"
+EXPECTED_UI_MESSAGE = "Coupon applied successfully." # Based on Expected Result
+
+driver = None
+try:
     print("=" * 70)
     print(f"🧪 TEST CASE: {TEST_ID} - {TEST_DESCRIPTION}")
     print("=" * 70)
 
     print("\n✓ Initializing Edge WebDriver...")
     driver = webdriver.Edge()
-    wait = WebDriverWait(driver, 10) # Initialize WebDriverWait with a 10-second timeout
-
-    # As per requirement 5, assume the HTML file is local.
-    HTML_FILE_PATH = "file:///C:/Users/irish/OneDrive/Desktop/qa_agent/assets/checkout.html"
-    print(f"✓ Navigating to HTML file: {HTML_FILE_PATH}")
+    
+    print(f"✓ Navigating to HTML file: {HTML_FILE_PATH}...")
     driver.get(HTML_FILE_PATH)
 
-    # Coupon code to use (from the HTML page's available codes)
-    VALID_COUPON_CODE = "VALID10"
-    # The message expected to be displayed in the UI upon successful application
-    EXPECTED_UI_FEEDBACK_MESSAGE = "Coupon applied successfully."
+    wait = WebDriverWait(driver, 10)
 
-    # Locate the Discount Code input field
-    print(f"✓ Locating Discount Code input field (ID: 'promo-code')...")
-    promo_code_input = wait.until(EC.presence_of_element_located((By.ID, "promo-code")))
-
-    # Enter the valid coupon code into the input field
-    print(f"✓ Entering coupon code '{VALID_COUPON_CODE}' into the input field...")
+    print(f"✓ Locating the 'Discount Code' input field (id='promo-code')...")
+    promo_code_input = wait.until(
+        EC.presence_of_element_located((By.ID, "promo-code"))
+    )
+    print(f"✓ Entering coupon code '{VALID_COUPON_CODE}'...")
     promo_code_input.send_keys(VALID_COUPON_CODE)
 
-    # Locate and click the Apply button
-    print(f"✓ Locating 'Apply' button (ID: 'apply-promo')...")
-    apply_promo_button = wait.until(EC.element_to_be_clickable((By.ID, "apply-promo")))
-    print("✓ Clicking 'Apply' button...")
+    print(f"✓ Locating the 'Apply' button (id='apply-promo')...")
+    apply_promo_button = wait.until(
+        EC.element_to_be_clickable((By.ID, "apply-promo"))
+    )
+    print("✓ Clicking the 'Apply' button...")
     apply_promo_button.click()
 
-    # Wait for the feedback message to appear in the promo-message div
-    print(f"✓ Waiting for feedback message to appear in 'promo-message' div...")
-    promo_message_div = wait.until(EC.visibility_of_element_located((By.ID, "promo-message")))
+    print(f"✓ Waiting for the promo message (id='promo-message') to be visible and contain the success message...")
+    promo_message_element = wait.until(
+        EC.visibility_of_element_located((By.ID, "promo-message"))
+    )
+    
+    actual_message = promo_message_element.text.strip()
+    print(f"✓ Actual message displayed: '{actual_message}'")
 
-    # Get the actual message and strip whitespace for robust comparison
-    actual_message = promo_message_div.text.strip()
+    print(f"✓ Asserting that the message contains '{EXPECTED_UI_MESSAGE}'...")
+    assert EXPECTED_UI_MESSAGE in actual_message, \
+        f"Expected message '{EXPECTED_UI_MESSAGE}' not found in actual message '{actual_message}'."
 
-    # Assert that the expected success message is contained within the actual message
-    print(f"✓ Verifying message: '{EXPECTED_UI_FEEDBACK_MESSAGE}'...")
-    if EXPECTED_UI_FEEDBACK_MESSAGE in actual_message:
-        print("\n" + "=" * 70)
-        print(f"✅ TEST PASSED: Coupon '{VALID_COUPON_CODE}' applied successfully. Message: '{actual_message}'")
-        print("=" * 70)
-    else:
-        # If the expected message is not found, raise an assertion error
-        raise AssertionError(f"Expected success message '{EXPECTED_UI_FEEDBACK_MESSAGE}' not found in actual message: '{actual_message}'")
+    print("\n" + "=" * 70)
+    print(f"✅ TEST PASSED: Coupon '{VALID_COUPON_CODE}' applied successfully and message '{EXPECTED_UI_MESSAGE}' displayed.")
+    print("=" * 70)
 
-    # Print structured test case summary upon success
+    # Print structured test case summary
     print()
     print(f"Test_ID: {TEST_ID}")
-    print(f"Feature: {FEATURE}")
+    print(f"Feature: {TEST_FEATURE}")
     print(f"Test_Scenario: {TEST_SCENARIO}")
     print(f"Expected_Result: {EXPECTED_RESULT}")
     print(f"Grounded_In: {GROUNDED_IN}")
 
 except Exception as e:
     print("\n" + "=" * 70)
-    print(f"❌ TEST FAILED: {TEST_ID} - {TEST_DESCRIPTION}")
+    print(f"❌ TEST FAILED: {TEST_ID}")
     print("=" * 70)
     print(f"Error: {str(e)}")
     print("=" * 70)
-
-    # Print structured test case summary upon failure
+    
+    # Print structured test case summary on failure too
     print()
     print(f"Test_ID: {TEST_ID}")
-    print(f"Feature: {FEATURE}")
+    print(f"Feature: {TEST_FEATURE}")
     print(f"Test_Scenario: {TEST_SCENARIO}")
     print(f"Expected_Result: {EXPECTED_RESULT}")
     print(f"Grounded_In: {GROUNDED_IN}")
-
-    sys.exit(1) # Exit with a non-zero status code to indicate failure
-
+    
+    sys.exit(1)
+    
 finally:
-    # Ensure the browser is closed even if an error occurs
-    if 'driver' in locals() and driver:
+    if driver:
         print("\n✓ Closing browser...")
         driver.quit()
         print("✓ Test execution complete.\n")
