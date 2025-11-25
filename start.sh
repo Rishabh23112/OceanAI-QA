@@ -7,7 +7,7 @@ PORT="${PORT:-8501}"
 # Ensure the Streamlit app talks to the local FastAPI instance by default.
 export BACKEND_URL="${BACKEND_URL:-http://127.0.0.1:${BACKEND_PORT}}"
 
-uvicorn backend.main:app --host 0.0.0.0 --port "${BACKEND_PORT}" &
+uvicorn main:app --host 0.0.0.0 --port "${BACKEND_PORT}" --app-dir backend &
 UVICORN_PID=$!
 
 cleanup() {
