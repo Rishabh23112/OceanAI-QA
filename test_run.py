@@ -1,3 +1,6 @@
+# Copy and paste the selenium script that is being generated.
+# Below is the sample of generated code .
+
 import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
